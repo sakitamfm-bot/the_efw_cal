@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thai Fetal Growth Calculator</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5d6670; --line:#d9dde3;
+  --accent:#1f5fa8; --band:rgba(31,95,168,.08); --p3:#b2182b; --p5:#e0784f; --p10:#c99700;
+  --p50:#1f5fa8; --flag:#fde0dd; --flagink:#8c1d18; --ok:#e6f4ea; --okink:#1e6b34; --pt:#f5c400;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#14171b; --card:#1d2126; --ink:#e7eaee; --muted:#9aa4af; --line:#343a42;
+  --accent:#6aa5ec; --band:rgba(106,165,236,.10); --p3:#f07878; --p5:#f2a07a; --p10:#e2c04a;
+  --p50:#6aa5ec; --flag:#4a2224; --flagink:#ffb4ab; --ok:#1f3a27; --okink:#9ad7a8; --pt:#ffd84d;
+}}
+:root[data-theme="dark"]{
+  --bg:#14171b; --card:#1d2126; --ink:#e7eaee; --muted:#9aa4af; --line:#343a42;
+  --accent:#6aa5ec; --band:rgba(106,165,236,.10); --p3:#f07878; --p5:#f2a07a; --p10:#e2c04a;
+  --p50:#6aa5ec; --flag:#4a2224; --flagink:#ffb4ab; --ok:#1f3a27; --okink:#9ad7a8; --pt:#ffd84d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif}
+header{padding:18px 16px 6px;max-width:1180px;margin:auto}
+h1{font-size:20px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:12.5px}
+main{max-width:1180px;margin:auto;padding:8px 16px 40px}
+.tabs{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+input,select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.ga{display:flex;gap:6px}
+.ga input{min-width:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{padding:4px 9px;font-size:12px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td:first-child,th:first-child{text-align:left}
+.scroll{overflow-x:auto}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:var(--ok);color:var(--okink)}
+.tag.flag{background:var(--flag);color:var(--flagink)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:12px}
+.chart h3{margin:0 0 4px;font-size:13.5px}
+svg{width:100%;height:auto;display:block}
+svg .ax{stroke:var(--muted);stroke-width:1}
+svg .gr{stroke:var(--line);stroke-width:1}
+svg text{fill:var(--muted);font-size:11px}
+svg .band{fill:var(--band)}
+svg .series{stroke:var(--ink);stroke-width:1.2;fill:none;opacity:.6}
+svg .pt{fill:var(--pt);stroke:var(--ink);stroke-width:1.2}
+svg .pt.cur{stroke-width:2.2}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+.note{font-size:12px;color:var(--muted)}
+.warn{color:var(--flagink);font-size:12.5px;margin-top:6px}
+.refs li{margin-bottom:4px}
+.hidden{display:none}
+.dop .grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.chk{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink);margin-top:20px}
+.chk input{width:auto}
+.fgrbox{border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--ok);color:var(--okink)}
+.fgrbox.sga{background:rgba(201,151,0,.14);color:var(--ink)}
+.fgrbox.fgr{background:var(--flag);color:var(--flagink)}
+.fgrbox b{font-size:15px}
+.plan{margin:8px 0 0;padding-left:18px}
+.plan li{margin-bottom:4px}
+.plan li.dl{font-weight:700;color:var(--flagink)}
+.printhead{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  header .sub,.tabs,.noprint{display:none!important}
+  .card{border:none;padding:0}
+  .printhead{display:block}
+  .charts{grid-template-columns:1fr 1fr}
+  .chart{break-inside:avoid}
+}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Thai Fetal">
+<meta name="theme-color" content="#1f5fa8">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+/* iPhone: respect the notch / home indicator, and keep inputs at 16px so
+   Safari does not zoom in when a field is tapped. */
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
+     padding-bottom:env(safe-area-inset-bottom)}
+header{padding-top:calc(18px + env(safe-area-inset-top))}
+@media (max-width:700px){input,select{font-size:16px}}
+#offlineNote{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Thai Fetal Growth Calculator</h1>
+  <div id="offlineNote"></div>
+  <div class="sub">BPD · HC · AC · FL · EFW percentiles (3rd–97th) from a pooled Thai reference (Siriraj, Khon Kaen, Sukhothai, Chiang Mai, Rajavithi). Works offline, and no data leaves this device.</div>
+</header>
+<main>
+  <div class="tabs noprint">
+    <button data-tab="calc" class="on">Calculator</button>
+    <button data-tab="tables">Reference tables</button>
+    <button data-tab="about">Sources &amp; method</button>
+    <button id="themeBtn" title="Toggle light/dark">◐</button>
+  </div>
+
+  <!-- ================= CALCULATOR ================= -->
+  <section id="tab-calc">
+    <div class="card noprint">
+      <div class="grid">
+        <div><label for="pid">Patient ID / HN</label><input id="pid" autocomplete="off"></div>
+        <div><label for="pname">Name</label><input id="pname" autocomplete="off"></div>
+        <div><label for="sdate">Scan date</label><input id="sdate" type="date"></div>
+        <div><label for="edd">EDD (optional, sets GA)</label><input id="edd" type="date"></div>
+        <div><label>Gestational age (weeks + days)</label>
+          <div class="ga"><input id="gaw" type="number" min="10" max="44" placeholder="wk" inputmode="numeric"><input id="gad" type="number" min="0" max="6" placeholder="d" inputmode="numeric"></div></div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div><label for="bpd">BPD (mm, outer–inner)</label><input id="bpd" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="hc">HC (mm)</label><input id="hc" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="ac">AC (mm)</label><input id="ac" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="fl">FL (mm)</label><input id="fl" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="efwIn">EFW (g), optional manual entry</label><input id="efwIn" type="number" step="1" inputmode="numeric" placeholder="overrides formula"></div>
+        <div><label for="formula">EFW formula plotted</label>
+          <select id="formula">
+            <option value="auto">Auto: Hadlock-3 if HC entered, else Tongsong 1992</option>
+            <option value="tongsong">Tongsong 1992 (Thai; BPD, AC)</option>
+            <option value="hadlock3">Hadlock-3 (HC, AC, FL)</option>
+          </select></div>
+        <div><label for="bioref">Biometry reference</label>
+          <select id="bioref">
+            <option value="pooled">Pooled Thai (recommended)</option>
+            <option value="single">Single-centre: Siriraj (BPD, AC, FL) + Sukhothai (HC)</option>
+          </select></div>
+        <div><label for="efwref">EFW reference chart</label>
+          <select id="efwref">
+            <option value="pooled">Pooled Thai (recommended)</option>
+            <option value="cm">Chiang Mai (Tongsong 1993)</option>
+            <option value="rv_all">Rajavithi 2014 – all babies</option>
+            <option value="rv_m">Rajavithi 2014 – male</option>
+            <option value="rv_f">Rajavithi 2014 – female</option>
+          </select></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="addBtn">Add to serial scans</button>
+        <button class="btn ghost" id="clearBtn">Clear inputs</button>
+        <button class="btn ghost" id="printBtn">Print / save PDF</button>
+        <span class="note" id="gaNote"></span>
+      </div>
+      <div id="warn" class="warn"></div>
+    </div>
+
+    <div class="card">
+      <div class="printhead"><h2 style="margin:0">Fetal Growth Report: Thai reference charts</h2></div>
+      <div class="note" id="hdr"></div>
+      <div class="scroll"><table id="res"><thead><tr><th>Parameter</th><th>Measured</th><th>Z</th><th>Centile</th><th>Category</th><th>P3</th><th>P5</th><th>P10</th><th>P50</th><th>P90</th><th>P95</th><th>P97</th></tr></thead><tbody></tbody></table></div>
+      <div class="note" id="efwAlt" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card dop">
+      <div class="row" style="margin-top:0;justify-content:space-between"><strong>Doppler &amp; FGR assessment (ISUOG 2020 · Delphi consensus)</strong>
+        <span class="note">Entries apply to the current scan</span></div>
+      <div class="grid noprint" style="margin-top:8px">
+        <div><label for="uaPI">UA PI</label><input id="uaPI" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="mcaPI">MCA PI</label><input id="mcaPI" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="cprIn">CPR (blank = MCA/UA)</label><input id="cprIn" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="uaEDF">UA end-diastolic flow</label><select id="uaEDF"><option value="">not assessed</option><option value="present">present</option><option value="absent">absent (AEDF)</option><option value="reversed">reversed (REDF)</option></select></div>
+        <div><label for="dvA">Ductus venosus a-wave</label><select id="dvA"><option value="">not assessed</option><option value="positive">positive (normal)</option><option value="absent">absent (at baseline)</option><option value="reversed">reversed</option></select></div>
+        <div><label for="utaPI">Uterine artery mean PI</label><input id="utaPI" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="utaAbn">UtA PI &gt;95th, if no PI entered</label><select id="utaAbn"><option value="">not assessed</option><option value="no">no</option><option value="yes">yes</option></select></div>
+        <div><label for="dvPIV">DV PIV</label><input id="dvPIV" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="dvAbn">DV PIV &gt;95th, if no PIV entered</label><select id="dvAbn"><option value="">not assessed</option><option value="no">no</option><option value="yes">yes</option></select></div>
+        <div><label for="mcaPSV">MCA PSV (cm/s)</label><input id="mcaPSV" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="stv">cCTG STV (ms)</label><input id="stv" type="number" step="0.1" inputmode="decimal"></div>
+        <div><label for="bpp">Biophysical profile (/10)</label><input id="bpp" type="number" min="0" max="10" step="2" inputmode="numeric"></div>
+        <div><label for="onset">FGR onset</label><select id="onset"><option value="">by current GA</option><option value="early">early (diagnosed &lt;32 wk)</option><option value="late">late (≥32 wk)</option></select></div>
+        <div><label for="uaRef">UA PI reference</label><select id="uaRef"><option value="thai">Thai – Siriraj 2000</option><option value="intergrowth">INTERGROWTH-21st 2020</option><option value="acharya">Acharya 2005 (serial)</option></select></div>
+        <div><label class="chk"><input id="decels" type="checkbox"> Repeated unprovoked decelerations</label></div>
+        <div><label class="chk"><input id="maternal" type="checkbox"> Maternal indication to deliver</label></div>
+      </div>
+      <div class="scroll" id="dopWrap"><table id="dop" style="margin-top:10px"><thead><tr><th>Doppler</th><th>Value</th><th>Z</th><th>Centile</th><th>Note</th><th>P5</th><th>P50</th><th>P95</th></tr></thead><tbody></tbody></table></div>
+      <div id="fgrOut"></div>
+    </div>
+
+    <div class="card" id="serialCard">
+      <div class="row" style="margin-top:0;justify-content:space-between">
+        <strong>Serial scans</strong>
+        <span class="noprint">
+          <button class="btn ghost small" id="expBtn">Export CSV</button>
+          <label class="btn ghost small" style="display:inline-block;margin:0;color:var(--accent)">Import CSV<input type="file" id="impFile" accept=".csv,text/csv" class="hidden"></label>
+          <button class="btn ghost small" id="wipeBtn">Clear all</button>
+        </span>
+      </div>
+      <div class="scroll"><table id="ser"><thead><tr><th>Date</th><th>GA</th><th>BPD</th><th>HC</th><th>AC</th><th>FL</th><th>EFW (g)</th><th>BPD %</th><th>HC %</th><th>AC %</th><th>FL %</th><th>EFW %</th><th>UA PI</th><th>MCA PI</th><th>CPR</th><th>UA EDF</th><th class="noprint"></th></tr></thead><tbody></tbody></table></div>
+      <div class="note" id="serEmpty">No serial scans yet. Click “Add to serial scans” to track growth across visits.</div>
+    </div>
+
+    <div class="charts" id="charts"></div>
+    <div class="legend" id="legend"></div>
+    <p class="note">Categories describe position on the reference only. SGA/FGR is classified in the Doppler &amp; FGR card using the Delphi consensus criteria and ISUOG 2020 guidance. This is a decision-support aid, not a substitute for clinical assessment.</p>
+  </section>
+
+  <!-- ================= TABLES ================= -->
+  <section id="tab-tables" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-top:0">
+        <select id="tblSel" style="max-width:320px"></select>
+        <button class="btn ghost small" id="tblCsv">Download CSV</button>
+      </div>
+      <div class="note" id="tblSrc" style="margin:8px 0"></div>
+      <div class="scroll"><table id="tbl"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section id="tab-about" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0">Pooled Thai reference (default)</h3>
+      <p class="note">Every Thai source whose data could be obtained is combined. Each source counts once (one hospital ≈ one region). For each week, the pooled distribution is the equal mixture of the source distributions: mean = average of the source means; variance = average of the source variances + the variance between the source means, so differences between centres are part of the normal range. The weekly values are then smoothed with weighted least squares (cubic mean, quadratic SD, weights = number of fetuses that week), the same approach the Siriraj papers used. Centile = mean + z·SD.</p>
+      <ul class="refs">
+        <li><b>BPD, AC, FL</b> (14–41 wk): Siriraj 2000 (central, n≈610, cross-sectional) + Khon Kaen 2007 (northeast, n=628, cross-sectional) + Sukhothai 2007 (north, 34/wk, longitudinal).</li>
+        <li><b>HC</b> (14–41 wk): Khon Kaen 2007 + Sukhothai 2007. The Siriraj HC paper (Sutanthavibul 2000, <i>Siriraj Hosp Gaz</i> 52:445–51) could not be obtained. At 41 wk only Khon Kaen contributes; the smoothed median is 11 mm below its single 41-wk value.</li>
+        <li><b>EFW</b> (24–42 wk): Chiang Mai 1993 + Rajavithi 2014 birthweight charts. Chulalongkorn 1984 (P10/50/90 from 28 wk) was checked but not pooled: it predates routine ultrasound dating and sits 0.1–0.8 SD below the pool.</li>
+        <li><b>Validation</b>: in every parameter, each source's weekly means fall inside the pooled 10th–90th centile in 96–100% of weeks. Leaving any one source out moves the pooled BPD/AC/FL median by at most 2.9 mm. Siriraj sits slightly below the pool (about −0.3 to −0.6 SD) and Khon Kaen slightly above (+0.3 to +0.5 SD).</li>
+        <li><b>Not available online and not included</b>: Siriraj HC (2000); Tongsong Chiang Mai BPD/HC/AC/FL (1990–91); Koranantakul Songkhla BPD/FL (1991); Chulalongkorn BPD/AC (1986, 1997).</li>
+        <li>Khon Kaen <i>J Med Assoc Thai</i> 2007;90:1963–9: Saksiriwuttho P, Ratanasiri T, Komwilaisak R. Fetal biometry charts for normal pregnant women in northeastern Thailand.</li>
+      </ul>
+      <h3>EFW formula</h3>
+      <p class="note">Default <b>Auto</b>: Hadlock-3 (HC, AC, FL) when HC and FL are entered, otherwise the Thai Tongsong 1992 formula (BPD, AC). In its own Thai derivation sample (162 babies) the Tongsong formula's mean absolute error (6.98%) was no better than Shepard's (6.89%), while Hadlock-3 is widely validated and was used in the 2026 Thai chart-comparison study.</p>
+      <p class="note"><b>Manual EFW:</b> an EFW typed into the EFW box (for example the value your ultrasound machine reports) is used instead of the formula, for the centile, the chart and serial scans; it is marked "entered" and, in the serial table, with *. Whatever formula produced it, its centile is read from the selected EFW reference chart.</p>
+      <h3>Single-centre references (selectable for comparison)</h3>
+      <ul class="refs">
+        <li><b>BPD</b> (12–41 wk): Siwadune T, et al. Charts of Thai fetal biometries: 2. Biparietal diameter. <i>J Med Assoc Thai</i> 2000;83:292–8 (Siriraj, n=613). Table 2 50th centile and SD; centile = mean + z·SD.</li>
+        <li><b>FL</b> (12–41 wk): Titapant V, et al. 3. Femur length. <i>J Med Assoc Thai</i> 2000;83:299–306 (Siriraj, n=608). Table 2 50th centile and SD.</li>
+        <li><b>HC</b> (14–40 wk): Kankeow K. Charts of fetal biometries at Sukhothai Hospital. <i>J Med Assoc Thai</i> 2007;90:844–51 (rural northern Thailand, 151 women, 34 measurements per week, single operator). The published weekly means and SDs are uneven, so they are smoothed in the same way as the Siriraj charts: mean = −98.818 + 14.5231·GA + 0.019898·GA² − 0.002944·GA³ (within 3.7 mm of every weekly mean); SD = 9.048 − 0.04215·GA. <b>This is not the Siriraj HC chart</b> (Sutanthavibul 2000, <i>Siriraj Hosp Gaz</i> 52:445–51), which is not included. Sukhothai biometry runs lower than urban Thai charts near term.</li>
+        <li><b>AC</b> (12–41 wk): Sunsaneevithayakul P, et al. 4. Abdominal circumference. <i>J Med Assoc Thai</i> 2000;83:307–14 (Siriraj). Modelled on the √AC scale; for each week √AC = m + s·z is fitted to the published 3rd/10th/50th/90th/97th centiles (the printed SD column does not reproduce them).</li>
+        <li><b>EFW chart</b> (24–42 wk): Tongsong T, et al. <i>J Med Assoc Thai</i> 1993;76:482–6 (Chiang Mai), equations as given in Tongprasert F, et al. <i>Obstet Gynecol Int</i> 2026:6968622:<br>
+          mean = −1723.6688 + 59.37904·GA + 1.53150·GA² ; SD = 16.72198·GA − 327.80386</li>
+        <li><b>EFW chart, alternative</b> (24–42 wk): Borisut P, Kovavisarach E. Standard intrauterine growth curve of Thai neonates delivered at Rajavithi Hospital. <i>J Med Assoc Thai</i> 2014;97:798–803 (Bangkok, 7,506 singleton births 2010–2013; GA confirmed by first-trimester or 14–20 wk ultrasound). Smoothed birthweight P5/P10/P50/P90 for all babies (Table 2) and by sex (Table 1), interpolated linearly between weeks. The paper gives no SD and no P3/P95/P97, so EFW is reported as a band (e.g. P5–P10) rather than an exact centile. In Table 1 the female P90 at 24–26 wk is above the male P90, an artefact of the paper's cubic smoothing at the extreme.</li>
+        <li><b>EFW formula (Thai)</b>: Tongsong T, Wanapirak C, Chaichonlatrap W. <i>Thai J Obstet Gynaecol</i> 1992;4:15–22: log₁₀EFW = 1.85479 + 0.09008·BPD + 0.02466·AC (cm).</li>
+        <li><b>Hadlock-3</b> (as printed in Tongprasert 2026): log₁₀EFW = 1.326 − 0.00326·AC·FL + 0.0107·HC + 0.0438·AC + 0.158·FL (cm).</li>
+      </ul>
+      <h3>Doppler references and FGR guidance</h3>
+      <ul class="refs">
+        <li><b>Umbilical artery PI, Thai (default)</b> (12–41 wk): Sunsaneevithayakul P, Siwadune T, Boriboonhirunsarn D, Titapant V, Sutanthavibul A. Reference centile charts for fetal umbilical artery Doppler velocimetry waveform of Thai fetuses. <i>Thai J Obstet Gynaecol</i> 2000;12:201–11 (Siriraj, n=617). Mean = 1.081 − 0.015·GA + 11.23/GA; SD = 0.189 − 0.0026·GA. The paper prints the SD equation as “−0.189 − (0.0026/W)”, which gives a negative SD; the form used here reproduces its own SD column (0.16 at 12 wk to 0.09 at 40 wk) and its centile table within 0.01. Its SD is narrower than international charts, so more fetuses fall above the 95th centile (e.g. UA PI 1.15 at 35 wk: P99.7 Thai vs P94.1 INTERGROWTH).</li>
+        <li><b>Umbilical artery PI, international</b> (24–40 wk): Drukker L, et al. International gestational age-specific centiles for umbilical artery Doppler indices: INTERGROWTH-21st. <i>Am J Obstet Gynecol</i> 2020;222:602.e1–15. Box–Cox equations (λ = −0.0768617); reproduces the paper’s worked example (PI 1.00 at 36+4 wk → z 0.87, P80.9).</li>
+        <li><b>MCA PI and cerebroplacental ratio</b> (21–39 wk): Ebbing C, Rasmussen S, Kiserud T. <i>Ultrasound Obstet Gynecol</i> 2007;30:287–96 (Bergen, 161 low-risk pregnancies, 566 observations). No Thai CPR reference has been published; the Thai MCA PI study (Komwilaisak, Khon Kaen 2004) could not be obtained. Centiles use a two-piece log-normal fitted exactly to each week’s published 5th/50th/95th centiles (within 0.02 of all nine published centiles); 39+x wk uses the 39-wk row; no centile from 40+0 wk.</li>
+        <li><b>MCA peak systolic velocity</b>: Mari G, et al. <i>N Engl J Med</i> 2000;342:9–14. Median = e<sup>2.31 + 0.046·GA</sup> cm/s; ≥1.5 MoM suggests moderate/severe fetal anaemia (not part of the FGR pathway).</li>
+        <li><b>Umbilical artery PI, serial (option)</b> (19–41 wk): Acharya G, Wilsgaard T, Berntsen GKR, Maltau JM, Kiserud T. Reference ranges for serial measurements of umbilical artery Doppler indices in the second half of pregnancy. <i>Am J Obstet Gynecol</i> 2005;192:937–44 (Tromsø, 130 low-risk pregnancies, 513 observations, free loop). ln PI mean = 1.5075 − 0.2843·√GA; variance = 0.0667 + 0.00398·GA − 0.0276·√GA (Appendix); reproduces Table II within 0.01. Conditional (serial) ranges are not yet calculated.</li>
+        <li><b>Uterine artery mean PI</b> (11–41 wk): Gómez O, Figueras F, Fernández S, Bennasar M, Martínez JM, Puerto B, Gratacós E. Reference ranges for uterine artery mean pulsatility index at 11–41 weeks of gestation. <i>Ultrasound Obstet Gynecol</i> 2008;32:128–32 (Barcelona, 620 women, mean of left and right PI; transvaginal at 11–14 wk, transabdominal from 15 wk). Centiles come from the published Table 2 (log-normal, interpolated between weeks). The printed equations have rounded coefficients and drift from the table by up to 0.017 at the 95th centile, so they are not used. The “&gt;95th” yes/no box is used only when no PI is entered.</li>
+        <li><b>Ductus venosus PIV</b> (21–39 wk): Kessler J, Rasmussen S, Hanson M, Kiserud T. Longitudinal reference ranges for ductus venosus flow velocities and waveform indices. <i>Ultrasound Obstet Gynecol</i> 2006;28:890–8 (Bergen, 160 low-risk pregnancies, 547 observations). The equations are in an online appendix that was not available, so centiles come from the published Table 4: a two-piece normal on the PIV scale fitted to each week’s 5th/50th/95th, interpolated between weeks (within 0.01 of all nine published centiles). As in ISUOG 2020, delivery timing uses the DV a-wave, not the PIV. The “&gt;95th” yes/no box is used only when no PIV is entered or outside 21–39 wk.</li>
+        <li><b>FGR definition</b>: Gordijn SJ, et al. Consensus definition of fetal growth restriction: a Delphi procedure. <i>Ultrasound Obstet Gynecol</i> 2016;48:333–9. Early FGR (&lt;32 wk): AC/EFW &lt;3rd or UA AEDF/REDF; or AC/EFW &lt;10th with UtA PI &gt;95th and/or UA PI &gt;95th. Late FGR (≥32 wk): AC/EFW &lt;3rd; or ≥2 of AC/EFW &lt;10th, AC/EFW crossing &gt;2 quartiles, CPR &lt;5th or UA PI &gt;95th. Centile crossing is taken from saved serial scans (largest fall of AC or EFW centile ≥50).</li>
+        <li><b>Management</b>: Lees CC, et al. ISUOG Practice Guidelines: diagnosis and management of small-for-gestational-age fetus and fetal growth restriction. <i>Ultrasound Obstet Gynecol</i> 2020;56:298–312. Early FGR: deliver at 26+0–28+6 wk if DV a-wave at/below baseline or STV &lt;2.6 ms; 29+0–31+6 wk if DV a-wave at/below baseline or STV &lt;3.0 ms; ≥32+0 wk (permitted after 30+0) if UA REDF or STV &lt;3.5 ms; ≥34+0 wk (permitted after 32+0) if UA AEDF or STV &lt;4.5 ms; ≥26 wk if repeated unprovoked decelerations or BPP ≤4. Late FGR: deliver if decelerations, BPP ≤4, STV &lt;3.5 ms (32+0–33+6) / &lt;4.5 ms (≥34+0), or UA AEDF/REDF; at 36+0–37+0 wk if UA PI &gt;95th; at 38+0 wk with cerebral redistribution. SGA: induce from 38+0 wk, not beyond 39+6 wk. The calculator also treats an abnormal DV a-wave after 32 wk as a delivery indication, because ISUOG lists DV only up to 31+6 wk while the UA criteria already apply from 32 wk.</li>
+      </ul>
+      <h3>Method notes</h3>
+      <ul class="refs">
+        <li>Fractional GA is interpolated linearly between weekly table rows. Percentile uses the exact normal CDF (Tongprasert 2026 used the logistic approximation 100/(1+e<sup>−1.7z</sup>); difference &lt; 1 centile point).</li>
+        <li>5th and 95th centiles are derived from the same mean and SD; the papers publish 3/10/50/90/97 only.</li>
+        <li>The printed BPD and FL regression equations use rounded coefficients that do not reproduce the papers’ own tables (e.g. BPD equation gives 78 mm at 40 wk vs 89 mm in Table 2), so the tables are used.</li>
+        <li>The BPD paper’s 97th centile at 40 wk repeats the 39-wk value (typo); this calculator computes 95.0 mm from P50 + 1.88·SD.</li>
+        <li>The EFW chart equation’s SD collapses toward zero below ~22 wk, so EFW centiles are given only from 24 wk.</li>
+        <li>Both EFW references are built from birthweights, not fetal ultrasound. Babies born preterm include more growth-restricted infants than fetuses of the same age that stay in the womb, so birthweight charts can sit low before about 37 weeks. At term the Rajavithi median is heavier than Chiang Mai (3,228 vs 3,102 g at 40 wk), so the choice of chart changes how many fetuses are flagged.</li>
+        <li>In the single-centre option, BPD, AC and FL come from the Siriraj cross-sectional series and HC from Sukhothai (longitudinal), so HC centiles are not strictly comparable with the others.</li>
+        <li>The pooled reference has not been validated against outcomes. Khon Kaen and Sukhothai excluded babies born SGA/LGA, which narrows their SDs; the between-centre term widens the pooled range. Pooling also mixes measurement eras (2000–2007 machines) and dating methods.</li>
+        <li>Serial scans are kept only in this browser on this device (local storage) and can be exported as CSV.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ---------------- statistics ---------------- */
+const PCTS=[3,5,10,50,90,95,97];
+const ZP={3:-1.8807936,5:-1.6448536,10:-1.2815516,50:0,90:1.2815516,95:1.6448536,97:1.8807936};
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+0.3275911*x);
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return s*y;}
+const cdf=z=>0.5*(1+erf(z/Math.SQRT2));
+
+/* ---------------- published tables, GA 12..41 ---------------- */
+const GA0=12, GAN=30;
+const BPD_P50=[20.47,23.39,26.36,29.39,32.45,35.55,38.66,41.78,44.89,47.99,51.06,54.10,57.08,60.01,62.87,65.64,68.32,70.90,73.37,75.71,77.91,79.97,81.87,83.69,85.15,86.50,87.66,88.60,89.32,89.80];
+const BPD_SD=[1.27,1.30,1.33,1.37,1.40,1.44,1.49,1.53,1.58,1.63,1.68,1.73,1.79,1.85,1.91,1.97,2.04,2.11,2.18,2.25,2.33,2.40,2.49,2.57,2.65,2.74,2.83,2.92,3.02,3.12];
+const FL_P50=[6.31,9.33,12.30,15.25,18.15,21.01,23.83,26.59,29.31,31.98,34.59,37.14,39.64,42.07,44.43,46.73,48.95,51.11,53.18,55.18,57.10,58.93,60.67,62.33,63.89,65.36,66.74,68.01,69.18,70.25];
+const FL_SD=[1.52,1.54,1.55,1.57,1.59,1.62,1.64,1.66,1.69,1.72,1.75,1.78,1.81,1.84,1.88,1.91,1.95,1.99,2.03,2.07,2.11,2.15,2.20,2.24,2.29,2.34,2.39,2.44,2.49,2.55];
+const AC_T={
+ 3:[50.86,60.00,69.49,79.26,89.25,99.39,109.63,119.93,130.25,140.50,150.79,160.95,171.02,180.97,190.78,200.46,209.98,219.35,228.57,237.63,246.54,255.31,263.95,272.47,280.88,289.20,297.44,305.62,313.76,321.89],
+ 10:[54.16,63.35,72.90,82.76,92.85,103.12,113.53,124.04,134.59,145.12,155.69,166.18,176.59,186.91,197.10,207.15,217.04,226.78,236.33,245.71,254.89,263.88,272.69,281.30,289.72,297.95,306.01,313.89,321.60,329.16],
+ 50:[61.56,70.83,80.49,90.50,100.80,111.36,122.13,133.07,144.13,155.28,166.47,177.67,188.85,199.96,210.96,221.86,232.58,243.11,253.42,263.48,273.26,282.74,291.89,300.69,309.12,317.16,324.79,331.98,338.73,345.02],
+ 90:[69.44,78.73,88.45,98.58,109.08,119.92,131.04,142.42,154.00,165.79,177.61,189.55,201.52,213.46,225.33,237.08,248.65,260.01,271.10,281.87,292.26,302.24,311.74,320.73,329.15,336.97,344.13,350.59,356.31,361.25],
+ 97:[73.28,82.56,92.30,102.47,113.06,124.02,135.30,146.88,158.71,170.80,182.93,195.22,207.56,219.90,232.18,244.35,256.34,268.09,279.55,290.66,301.34,311.55,321.23,330.30,338.71,346.41,353.34,359.44,364.66,368.95]};
+// least-squares sqrt(AC)=m+s*z per week (z symmetric => m = mean, s = Σzy/Σz²)
+const AC_M=[],AC_S=[];
+(function(){const ps=[3,10,50,90,97];const zz=ps.map(p=>ZP[p]);const sz2=zz.reduce((a,z)=>a+z*z,0);
+  for(let i=0;i<GAN;i++){const y=ps.map(p=>Math.sqrt(AC_T[p][i]));
+    AC_M.push(y.reduce((a,b)=>a+b,0)/y.length);AC_S.push(y.reduce((a,v,k)=>a+v*zz[k],0)/sz2);}})();
+
+function interp(arr,ga){const x=Math.min(Math.max(ga,GA0),GA0+GAN-1)-GA0;const i=Math.min(Math.floor(x),GAN-2);const f=x-i;return arr[i]*(1-f)+arr[i+1]*f;}
+
+const REFS={
+ bpd:{label:"Biparietal diameter (BPD)",short:"BPD",unit:"mm",min:12,max:41,dec:1,sqrt:false,
+      src:"Siwadune et al. J Med Assoc Thai 2000;83:292–8 (Siriraj)",
+      par:g=>[interp(BPD_P50,g),interp(BPD_SD,g)]},
+ // HC: Kankeow 2007 Sukhothai Table 2 (weekly mean/SD, 14-40 wk), smoothed Altman-style:
+ // cubic in GA for the mean (max |residual| 3.7 mm vs table), linear in GA for the SD.
+ hc:{label:"Head circumference (HC)",short:"HC",unit:"mm",min:14,max:40,dec:1,sqrt:false,
+      src:"Kankeow K. J Med Assoc Thai 2007;90:844–51 (Sukhothai; smoothed)",
+      par:g=>[-98.818429+14.523098*g+0.019898*g*g-0.002944*g*g*g, 9.04802-0.04215*g]},
+ ac:{label:"Abdominal circumference (AC)",short:"AC",unit:"mm",min:12,max:41,dec:1,sqrt:true,
+      src:"Sunsaneevithayakul et al. J Med Assoc Thai 2000;83:307–14 (Siriraj)",
+      par:g=>[interp(AC_M,g),interp(AC_S,g)]},
+ fl:{label:"Femur length (FL)",short:"FL",unit:"mm",min:12,max:41,dec:1,sqrt:false,
+      src:"Titapant et al. J Med Assoc Thai 2000;83:299–306 (Siriraj)",
+      par:g=>[interp(FL_P50,g),interp(FL_SD,g)]},
+ efw:{label:"Estimated fetal weight (EFW)",short:"EFW",unit:"g",min:24,max:42,dec:0,sqrt:false,
+      src:"Tongsong et al. J Med Assoc Thai 1993;76:482–6 (Chiang Mai), equations per Tongprasert et al. Obstet Gynecol Int 2026",
+      par:g=>[-1723.668774703609+59.37904432524342*g+1.531500564652684*g*g,16.72198051948052*g-327.8038636363638]}
+};
+// Rajavithi Hospital 2014 (Borisut & Kovavisarach, J Med Assoc Thai 97:798-803): smoothed
+// birthweight percentiles, GA 24..42 wk. Table 2 (all babies) and Table 1 (male / female).
+const RV={
+ all:{5:[565,612,686,784,902,1037,1184,1342,1505,1671,1836,1997,2149,2290,2416,2523,2607,2666,2696],
+     10:[623,664,736,834,955,1095,1250,1416,1589,1765,1940,2111,2272,2421,2554,2665,2752,2811,2837],
+     50:[713,773,867,990,1138,1306,1489,1684,1886,2091,2294,2491,2677,2848,3000,3129,3228,3296,3327],
+     90:[799,884,1004,1156,1334,1534,1750,1978,2212,2449,2682,2906,3118,3312,3483,3626,3736,3809,3839]},
+ m:{5:[618,667,740,833,944,1069,1207,1355,1510,1668,1828,1987,2143,2291,2430,2558,2670,2765,2840],
+    10:[637,683,759,859,982,1122,1277,1443,1615,1790,1965,2136,2292,2449,2585,2702,2796,2863,2901],
+    50:[715,782,880,1006,1155,1323,1507,1701,1903,2107,2309,2506,2693,2866,3021,3153,3259,3335,3375],
+    90:[780,871,998,1154,1337,1540,1759,1990,2227,2466,2701,2930,3145,3343,3519,3668,3786,3867,3907]},
+ f:{5:[558,597,666,761,879,1015,1165,1326,1493,1663,1831,1994,2148,2288,2412,2514,2590,2638,2653],
+    10:[582,621,693,793,918,1062,1222,1393,1570,1749,1925,2095,2253,2396,2518,2615,2684,2719,2716],
+    50:[710,765,854,973,1118,1283,1465,1658,1859,2062,2264,2459,2644,2813,2962,3087,3182,3244,3269],
+    90:[909,958,1050,1179,1341,1528,1736,1959,2191,2427,2660,2886,3098,3291,3459,3597,3699,3758,3771]}};
+const rvRef=(t,who)=>({label:"Estimated fetal weight (EFW)",short:"EFW",unit:"g",min:24,max:42,dec:0,table:t,
+  name:`Rajavithi 2014 (${who})`,src:`Borisut & Kovavisarach. J Med Assoc Thai 2014;97:798–803 (Rajavithi birthweight, ${who}); published P5/P10/P50/P90 only`});
+/* ---------------- POOLED THAI REFERENCE ----------------
+   Built by pool_thai_reference.py. Per week, equal weight per source (region);
+   mean/variance of the equal mixture of source distributions (includes between-centre
+   differences); then weighted least-squares smoothing: cubic mean, quadratic SD.
+   Biometry sources: Siriraj 2000 (central; BPD, AC, FL), Khon Kaen 2007 (northeast;
+   BPD, HC, AC, FL), Sukhothai 2007 (north; BPD, HC, AC, FL).
+   EFW sources: Chiang Mai 1993 and Rajavithi 2014 birthweight charts. */
+const poly=(c,g)=>c.reduce((a,ci,k)=>a+ci*Math.pow(g,k),0);
+const PL={
+ bpd:{m:[-10.4644388089,1.9429333841,0.0757996071,-0.001528136],s:[2.0549061058,0.0239859008,0.0002181327],src:"Siriraj 2000 · Khon Kaen 2007 · Sukhothai 2007"},
+ hc:{m:[-113.6827256343,17.0757470998,-0.0987107794,-0.0012642933],s:[8.0342759244,0.1549780923,-0.0032984701],src:"Khon Kaen 2007 · Sukhothai 2007 (Siriraj HC paper not available)"},
+ ac:{m:[-38.6290391791,6.3761411235,0.2288162611,-0.0038010197],s:[7.2297623458,0.0379981087,0.0046626243],src:"Siriraj 2000 · Khon Kaen 2007 · Sukhothai 2007"},
+ fl:{m:[-34.814630095,3.7537977473,-0.0193799909,-0.0002092554],s:[1.9883075007,0.0389085052,-0.0004299549],src:"Siriraj 2000 · Khon Kaen 2007 · Sukhothai 2007"},
+ efw:{m:[9491.3044892508,-1035.5245859686,36.5838985943,-0.3662397974],s:[-747.7891051163,42.4242521042,-0.3585332905],src:"Chiang Mai 1993 · Rajavithi 2014 (birthweight)"}};
+const pooledRef=(k,label,short,unit,min,max,dec)=>({label,short,unit,min,max,dec,sqrt:false,name:"Pooled Thai",
+  src:"Pooled Thai reference: "+PL[k].src,par:g=>[poly(PL[k].m,g),poly(PL[k].s,g)]});
+const BIO_SETS={
+ pooled:{bpd:pooledRef("bpd","Biparietal diameter (BPD)","BPD","mm",14,41,1),
+         hc:pooledRef("hc","Head circumference (HC)","HC","mm",14,41,1),
+         ac:pooledRef("ac","Abdominal circumference (AC)","AC","mm",14,41,1),
+         fl:pooledRef("fl","Femur length (FL)","FL","mm",14,41,1)},
+ single:{bpd:Object.assign(REFS.bpd,{name:"Siriraj 2000"}),hc:Object.assign(REFS.hc,{name:"Sukhothai 2007"}),
+         ac:Object.assign(REFS.ac,{name:"Siriraj 2000"}),fl:Object.assign(REFS.fl,{name:"Siriraj 2000"})}};
+const EFW_REFS={
+ pooled:pooledRef("efw","Estimated fetal weight (EFW)","EFW","g",24,42,0),
+ cm:Object.assign(REFS.efw,{name:"Chiang Mai (Tongsong 1993)"}),
+ rv_all:rvRef(RV.all,"all babies"), rv_m:rvRef(RV.m,"male"), rv_f:rvRef(RV.f,"female")};
+const getRef=id=>{const [set,k]=id.split(":");return set==="efw"?EFW_REFS[k]:BIO_SETS[set][k];};
+const ref=k=>k==="efw"?(EFW_REFS[$("efwref").value]||EFW_REFS.pooled):(BIO_SETS[$("bioref").value]||BIO_SETS.pooled)[k];
+function band(r,g,x){const c=p=>centile(r,g,p);
+  if(x<c(5))return {label:"< P5",cat:"< 5th",flag:true};
+  if(x<c(10))return {label:"P5–P10",cat:"< 10th",flag:true};
+  if(x<c(50))return {label:"P10–P50",cat:"10th–90th",flag:false};
+  if(x<=c(90))return {label:"P50–P90",cat:"10th–90th",flag:false};
+  return {label:"> P90",cat:"> 90th",flag:true};}
+const KEYS=["bpd","hc","ac","fl","efw"];
+function centile(r,g,p){
+  if(r.table){const a=r.table[p];if(!a)return NaN;const x=Math.min(Math.max(g,r.min),r.max)-r.min;
+    const i=Math.min(Math.floor(x),a.length-2),f=x-i;return a[i]*(1-f)+a[i+1]*f;}const [m,s]=r.par(g);const v=m+ZP[p]*s;return r.sqrt?v*v:v;}
+function zscore(r,g,x){const [m,s]=r.par(g);return ((r.sqrt?Math.sqrt(x):x)-m)/s;}
+
+const FORMULAS={
+ tongsong:{label:"Tongsong 1992 (Thai; BPD, AC)",need:["bpd","ac"],f:v=>Math.pow(10,1.85479+0.09008*v.bpd/10+0.02466*v.ac/10)},
+ hadlock3:{label:"Hadlock-3 (HC, AC, FL)",need:["ac","fl","hc"],f:v=>{const a=v.ac/10,f=v.fl/10,h=v.hc/10;return Math.pow(10,1.326-0.00326*a*f+0.0107*h+0.0438*a+0.158*f);}}
+};
+FORMULAS.auto={label:"Auto (Hadlock-3 / Tongsong 1992)",need:["ac"],
+  f:v=>(v.hc&&v.fl)?FORMULAS.hadlock3.f(v):(v.bpd?FORMULAS.tongsong.f(v):null),
+  which:v=>(v.hc&&v.fl)?"Hadlock-3":(v.bpd?"Tongsong 1992":null)};
+function classify(p){return p<3?"< 3rd":p<10?"< 10th":p>97?"> 97th":p>90?"> 90th":"10th–90th";}
+const fmtGA=g=>{let w=Math.floor(g+1e-9),d=Math.round((g-w)*7);if(d===7){w++;d=0;}return w+"+"+d;};
+const $=id=>document.getElementById(id);
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)&&v>0?v:null;};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------------- storage (per-device convenience only) ---------------- */
+const KEY="thaiFetalCalc.v1";
+let scans=[];
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");scans=Array.isArray(d.scans)?d.scans:[];
+  ["pid","pname"].forEach(k=>{if(d[k])$(k).value=d[k];});if(d.formula)$("formula").value=d.formula;if(d.efwref)$("efwref").value=d.efwref;if(d.bioref)$("bioref").value=d.bioref;if(d.uaRef)$("uaRef").value=d.uaRef;}catch(e){scans=[];}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({scans,pid:$("pid").value,pname:$("pname").value,formula:$("formula").value,bioref:$("bioref").value,efwref:$("efwref").value,uaRef:$("uaRef").value}));}catch(e){}}
+
+/* ---------------- current input ---------------- */
+function readGA(){const w=parseInt($("gaw").value,10),d=parseInt($("gad").value||"0",10);
+  if(!isFinite(w))return null;if(!(d>=0&&d<=6))return NaN;return w+d/7;}
+function eddToGA(){const e=$("edd").value,s=$("sdate").value||new Date().toISOString().slice(0,10);if(!e)return;
+  const days=280-Math.round((Date.parse(e)-Date.parse(s))/86400000);if(days<0)return;
+  $("gaw").value=Math.floor(days/7);$("gad").value=days%7;$("gaNote").textContent="GA set from EDD: "+Math.floor(days/7)+"+"+(days%7)+" wk";}
+function current(){const d=currentDoppler();return {date:$("sdate").value,ga:readGA(),bpd:num("bpd"),hc:num("hc"),ac:num("ac"),fl:num("fl"),efw:num("efwIn"),
+  ua_pi:d.ua_pi,mca_pi:d.mca_pi,cpr:d.cpr,uta_pi:d.uta_pi,dv_piv:d.dv_piv,mca_psv:d.mca_psv,ua_edf:d.ua_edf,dv_a:d.dv_a};}
+function efwFor(v,key){const F=FORMULAS[key];return F.need.every(n=>v[n])?F.f(v):null;}
+/* EFW used for centiles and charts: a manually entered value wins over the formula */
+function efwOf(v,fk){return v&&v.efw?v.efw:efwFor(v,fk);}
+const fLabel=(fk,v)=>v&&v.efw?"Entered manually":fk==="auto"&&v&&FORMULAS.auto.which(v)?`Auto → ${FORMULAS.auto.which(v)}`:FORMULAS[fk].label;
+function assess(v){const fk=$("formula").value;const out={};
+  const vals={bpd:v.bpd,hc:v.hc,ac:v.ac,fl:v.fl,efw:efwOf(v,fk)};
+  for(const k of KEYS){const x=vals[k];if(x==null)continue;const r=ref(k);
+    if(v.ga>=r.min&&v.ga<=r.max){if(r.table)out[k]={x,band:band(r,v.ga,x)};else{const z=zscore(r,v.ga,x);out[k]={x,z,p:100*cdf(z)};}}
+    else out[k]={x,oor:true};}
+  return out;}
+
+/* ---------------- render results ---------------- */
+function render(){
+  save();
+  const v=current(),tb=$("res").querySelector("tbody");tb.innerHTML="";$("warn").textContent="";$("efwAlt").textContent="";
+  const fk=$("formula").value;
+  $("hdr").innerHTML=`ID/HN: <b>${esc($("pid").value||"–")}</b> · Name: <b>${esc($("pname").value||"–")}</b> · Scan: ${esc(v.date||"–")} · GA: <b>${v.ga>0?fmtGA(v.ga)+" wk":"–"}</b> · EFW formula: ${fLabel(fk,v)} · Biometry ref: ${ref("bpd").name} · EFW ref: ${ref("efw").name}`;
+  if(Number.isNaN(v.ga)){$("warn").textContent="Days must be 0–6.";renderFGR(null);drawCharts(null);renderSerial();return;}
+  if(v.ga==null){tb.innerHTML=`<tr><td colspan="12" class="note">Enter gestational age and biometry.</td></tr>`;renderFGR(null);drawCharts(null);renderSerial();return;}
+  const a=assess(v);const warns=[];
+  for(const k of KEYS){const r=ref(k),e=a[k];
+    const refc=(v.ga>=r.min&&v.ga<=r.max)?PCTS.map(p=>{const c=centile(r,v.ga,p);return `<td>${isNaN(c)?"–":c.toFixed(r.dec)}</td>`;}).join(""):`<td colspan="7" class="note">GA outside ${r.min}–${r.max} wk</td>`;
+    let meas="–",zt="–",pt="–",cat="–";
+    if(e){meas=e.x.toFixed(r.dec)+" "+r.unit;
+      if(e.oor){warns.push(`${r.short}: GA outside reference range (${r.min}–${r.max} wk).`);}
+      else if(e.band){pt=e.band.label;cat=`<span class="tag${e.band.flag?" flag":""}">${e.band.cat}</span>`;}
+      else{zt=(e.z>=0?"+":"")+e.z.toFixed(2);pt=e.p<0.1?"<0.1":e.p>99.9?">99.9":e.p.toFixed(1);const c=classify(e.p);
+        cat=`<span class="tag${/[<>]/.test(c)?" flag":""}">${c}</span>`;}}
+    else if(k==="efw"){meas=`<span class="note">enter EFW, or ${fk==="auto"?"BPD + AC, or HC + AC + FL":FORMULAS[fk].need.map(s=>s.toUpperCase()).join(", ")}</span>`;}
+    if(e&&k==="efw"&&v.efw)meas+=` <span class="note">(entered)</span>`;
+    tb.insertAdjacentHTML("beforeend",`<tr><td>${r.label}</td><td>${meas}</td><td>${zt}</td><td>${pt}</td><td>${cat}</td>${refc}</tr>`);}
+  const usedF=v.efw?null:fk==="auto"?(FORMULAS.auto.which(v)==="Hadlock-3"?"hadlock3":"tongsong"):fk;
+  const other=["tongsong","hadlock3"].filter(k=>k!==usedF).map(k=>{const w=efwFor(v,k);return w?`${FORMULAS[k].label}: ${Math.round(w)} g`:null;}).filter(Boolean);
+  const notes=[];
+  if(other.length)notes.push("For comparison (not charted): "+other.join(" · "));
+  if(ref("efw").table)notes.push("EFW reference: "+ref("efw").name+". It publishes P5/P10/P50/P90 only, so EFW is placed in a band, not given an exact centile or z-score.");
+  else notes.push("EFW reference: "+ref("efw").name+".");
+  $("efwAlt").textContent=notes.join("  ");
+  const plaus=[["bpd",10,110],["hc",50,400],["ac",40,450],["fl",3,90]];
+  for(const [k,lo,hi] of plaus){if(v[k]!=null&&(v[k]<lo||v[k]>hi))warns.push(`${k.toUpperCase()} ${v[k]} mm looks implausible. Check the units are mm.`);}
+  if(v.efw!=null&&(v.efw<100||v.efw>6000))warns.push(`EFW ${v.efw} g looks implausible. Enter grams (e.g. 1850, not 1.85).`);
+  const d0=currentDoppler();
+  if(d0.ua_pi&&(d0.ua_pi<0.2||d0.ua_pi>4))warns.push(`UA PI ${d0.ua_pi} looks implausible.`);
+  if(d0.mca_pi&&(d0.mca_pi<0.4||d0.mca_pi>5))warns.push(`MCA PI ${d0.mca_pi} looks implausible.`);
+  if(d0.mca_psv&&(d0.mca_psv<5||d0.mca_psv>150))warns.push(`MCA PSV ${d0.mca_psv} cm/s looks implausible.`);
+  $("warn").textContent=warns.join(" ");
+  renderFGR(v,a);
+  drawCharts(v);renderSerial();
+}
+
+/* ---------------- serial ---------------- */
+function renderSerial(){
+  const tb=$("ser").querySelector("tbody");tb.innerHTML="";$("serEmpty").style.display=scans.length?"none":"";
+  const fk=$("formula").value;
+  scans.slice().sort((a,b)=>a.ga-b.ga).forEach(s=>{
+    const a=assess(s),c=k=>!a[k]||a[k].oor?"–":a[k].band?a[k].band.label:a[k].p.toFixed(0);const w=efwOf(s,fk);
+    tb.insertAdjacentHTML("beforeend",`<tr><td>${esc(s.date||"–")}</td><td>${fmtGA(s.ga)}</td><td>${s.bpd??"–"}</td><td>${s.hc??"–"}</td><td>${s.ac??"–"}</td><td>${s.fl??"–"}</td><td>${w?Math.round(w)+(s.efw?"*":""):"–"}</td><td>${c("bpd")}</td><td>${c("hc")}</td><td>${c("ac")}</td><td>${c("fl")}</td><td>${c("efw")}</td><td>${s.ua_pi??"–"}</td><td>${s.mca_pi??"–"}</td><td>${s.cpr??(s.ua_pi&&s.mca_pi?(s.mca_pi/s.ua_pi).toFixed(2):"–")}</td><td>${s.ua_edf||"–"}</td><td class="noprint"><button class="btn ghost small" data-del="${scans.indexOf(s)}">✕</button></td></tr>`);});
+}
+$("ser").addEventListener("click",e=>{const i=e.target.dataset.del;if(i!=null){scans.splice(+i,1);render();}});
+$("addBtn").onclick=()=>{const v=current();if(!(v.ga>0)){$("warn").textContent="Enter a valid GA first.";return;}
+  if(!(v.bpd||v.hc||v.ac||v.fl||v.efw||hasDop(v))){$("warn").textContent="Enter at least one measurement, EFW or Doppler value.";return;}scans.push(v);render();};
+$("wipeBtn").onclick=()=>{if(scans.length&&confirm("Remove all serial scans for this patient from this device?")){scans=[];render();}};
+$("clearBtn").onclick=()=>{["gaw","gad","bpd","hc","ac","fl","efwIn","edd",...DOP_IDS,"stv","bpp","onset"].forEach(k=>$(k).value="");$("decels").checked=$("maternal").checked=false;$("gaNote").textContent="";render();};
+$("printBtn").onclick=()=>window.print();
+function download(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/csv"}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+$("expBtn").onclick=()=>{const rows=["date,ga,bpd,hc,ac,fl,efw,ua_pi,mca_pi,cpr,uta_pi,dv_piv,mca_psv,ua_edf,dv_a"].concat(scans.slice().sort((a,b)=>a.ga-b.ga).map(s=>[s.date||"",fmtGA(s.ga),s.bpd??"",s.hc??"",s.ac??"",s.fl??"",s.efw??"",s.ua_pi??"",s.mca_pi??"",s.cpr??"",s.uta_pi??"",s.dv_piv??"",s.mca_psv??"",s.ua_edf??"",s.dv_a??""].join(",")));
+  download(`serial_scans_${($("pid").value||"patient").replace(/[^\w-]/g,"_")}.csv`,rows.join("\n"));};
+$("impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{
+  const lines=String(rd.result).trim().split(/\r?\n/);const h=lines.shift().toLowerCase().split(",").map(s=>s.trim());let n=0;
+  for(const L of lines){const c=L.split(",");const g=k=>{const i=h.indexOf(k);return i<0?"":(c[i]||"").trim();};
+    let ga=g("ga");if(!ga)continue;ga=ga.includes("+")?(+ga.split("+")[0])+(+ga.split("+")[1]||0)/7:parseFloat(ga);if(!(ga>0))continue;
+    const nv=k=>{const x=parseFloat(g(k));return isFinite(x)&&x>0?x:null;};
+    const cv=(k,ok)=>{const x=g(k).toLowerCase();return ok.includes(x)?x:null;};
+    scans.push({date:g("date"),ga,bpd:nv("bpd"),hc:nv("hc"),ac:nv("ac"),fl:nv("fl"),efw:nv("efw"),ua_pi:nv("ua_pi"),mca_pi:nv("mca_pi"),cpr:nv("cpr"),uta_pi:nv("uta_pi"),dv_piv:nv("dv_piv"),mca_psv:nv("mca_psv"),
+      ua_edf:cv("ua_edf",["present","absent","reversed"]),dv_a:cv("dv_a",["positive","absent","reversed"])});n++;}
+  e.target.value="";render();alert(`Imported ${n} scan(s).`);};rd.readAsText(f);};
+
+/* ---------------- Doppler references + ISUOG FGR (port of fgr_doppler.py) ---------------- */
+const Z95=1.6448536;
+const invZ=p=>{ // inverse normal (Acklam), enough for centile lines
+  const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.3577518672690,-30.66479806614716,2.506628277459239],
+        b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572],
+        c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783],
+        d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+  const q=p/100;if(q<0.02425){const t=Math.sqrt(-2*Math.log(q));return (((((c[0]*t+c[1])*t+c[2])*t+c[3])*t+c[4])*t+c[5])/((((d[0]*t+d[1])*t+d[2])*t+d[3])*t+1);}
+  if(q>1-0.02425){const t=Math.sqrt(-2*Math.log(1-q));return -(((((c[0]*t+c[1])*t+c[2])*t+c[3])*t+c[4])*t+c[5])/((((d[0]*t+d[1])*t+d[2])*t+d[3])*t+1);}
+  const t=q-0.5,r=t*t;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*t/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);};
+const uaThai=g=>[1.081-0.015*g+11.23/g,0.189-0.0026*g];
+const IGL=-0.0768617;
+const uaIG=g=>[1.02944+77.7456*g**-2-0.000004455*g**3,-0.00645693+254.885*Math.log(g)*g**-2-715.949*g**-2];
+const uaAch=g=>[1.5075-0.2843*Math.sqrt(g),Math.sqrt(0.0667+0.00398*g-0.0276*Math.sqrt(g))];
+const UA_REFS={
+ thai:{label:"Thai (Siriraj, Sunsaneevithayakul 2000)",short:"Thai Siriraj",min:12,max:42,
+   z:(g,y)=>{const [m,s]=uaThai(g);return (y-m)/s;},cen:(g,p)=>{const [m,s]=uaThai(g);return m+invZ(p)*s;}},
+ intergrowth:{label:"INTERGROWTH-21st (Drukker 2020)",short:"INTERGROWTH-21st",min:24,max:41,
+   z:(g,y)=>{const [mu,s]=uaIG(g);return (Math.exp((y-mu)*IGL/s)-1)/IGL;},cen:(g,p)=>{const [mu,s]=uaIG(g);return mu+s/IGL*Math.log(1+IGL*invZ(p));}},
+ acharya:{label:"Acharya 2005 (longitudinal, Tromsø)",short:"Acharya 2005",min:19,max:42,
+   z:(g,y)=>{const [m,s]=uaAch(g);return (Math.log(y)-m)/s;},cen:(g,p)=>{const [m,s]=uaAch(g);return Math.exp(m+invZ(p)*s);}}};
+// Ebbing 2007 Tables 3 and 5: week 21..39 -> [P5,P50,P95]
+const EB_MCA=[[1.18,1.60,2.19],[1.25,1.69,2.30],[1.32,1.78,2.41],[1.38,1.86,2.52],[1.44,1.94,2.62],[1.50,2.01,2.71],[1.55,2.06,2.78],[1.58,2.11,2.84],[1.61,2.15,2.88],[1.62,2.16,2.90],[1.62,2.16,2.90],[1.61,2.14,2.87],[1.58,2.10,2.82],[1.53,2.04,2.74],[1.47,1.96,2.64],[1.39,1.86,2.52],[1.30,1.75,2.38],[1.20,1.63,2.22],[1.10,1.49,2.05]];
+const EB_CPR=[[0.90,1.41,2.11],[0.98,1.52,2.25],[1.07,1.63,2.39],[1.16,1.74,2.52],[1.24,1.85,2.65],[1.32,1.95,2.78],[1.40,2.05,2.90],[1.47,2.14,3.00],[1.53,2.21,3.09],[1.58,2.28,3.17],[1.62,2.32,3.23],[1.64,2.35,3.27],[1.65,2.36,3.29],[1.63,2.35,3.29],[1.60,2.32,3.26],[1.55,2.27,3.20],[1.48,2.19,3.12],[1.40,2.09,3.01],[1.29,1.97,2.88]];
+// Gomez 2008 Table 2: week 11..41 -> [P5,P50,P95] of uterine artery mean PI
+const GZ_UTA=[[1.18,1.79,2.70],[1.11,1.68,2.53],[1.05,1.58,2.38],[0.99,1.49,2.24],[0.94,1.41,2.11],[0.89,1.33,1.99],[0.85,1.27,1.88],[0.81,1.20,1.79],[0.78,1.15,1.70],[0.74,1.10,1.61],[0.71,1.05,1.54],[0.69,1.00,1.47],[0.66,0.96,1.41],[0.64,0.93,1.35],[0.62,0.89,1.30],[0.60,0.86,1.25],[0.58,0.84,1.21],[0.56,0.81,1.17],[0.55,0.79,1.13],[0.54,0.77,1.10],[0.52,0.75,1.06],[0.51,0.73,1.04],[0.50,0.71,1.01],[0.50,0.70,0.99],[0.49,0.69,0.97],[0.48,0.68,0.95],[0.48,0.67,0.94],[0.47,0.66,0.92],[0.47,0.65,0.91],[0.47,0.65,0.90],[0.47,0.65,0.89]];
+GZ_UTA.w0=11;
+// Kessler 2006 Table 4: week 21..39 -> [P5,P50,P95] of DV PIV (two-piece normal, PIV scale)
+const KS_DV=[[0.32,0.57,0.83],[0.32,0.57,0.83],[0.32,0.57,0.83],[0.32,0.57,0.83],[0.32,0.57,0.83],[0.31,0.57,0.82],[0.31,0.56,0.82],[0.31,0.56,0.81],[0.30,0.55,0.81],[0.29,0.54,0.80],[0.28,0.53,0.79],[0.28,0.53,0.78],[0.27,0.52,0.77],[0.26,0.51,0.76],[0.25,0.50,0.75],[0.24,0.49,0.74],[0.23,0.48,0.73],[0.22,0.46,0.72],[0.21,0.45,0.71]];
+const EB_MIN=21,EB_MAX=40,GZ_MIN=11,GZ_MAX=42;
+function lnPar(T,g){const w=Math.floor(g);if(w>=39)return T[18].slice();const f=g-w,a=T[w-21],b=T[w-20];return a.map((x,i)=>x*(1-f)+b[i]*f);}
+function lnZ(T,g,y){const [p5,p50,p95]=lnPar(T,g);return (y-p50)/((y<p50?p50-p5:p95-p50)/Z95);}
+function lnCen(T,g,p){const [p5,p50,p95]=lnPar(T,g);const z=invZ(p);return p50+z*(z<0?p50-p5:p95-p50)/Z95;}
+function ebPar(T,g){const w0=T.w0||21,last=w0+T.length-1,w=Math.floor(g);if(w>=last)return T[T.length-1].map(Math.log);const f=g-w,a=T[w-w0],b=T[w-w0+1];return a.map((x,i)=>Math.log(x)*(1-f)+Math.log(b[i])*f);}
+function ebZ(T,g,y){const [l5,l50,l95]=ebPar(T,g);const s=y<Math.exp(l50)?(l50-l5)/Z95:(l95-l50)/Z95;return (Math.log(y)-l50)/s;}
+function ebCen(T,g,p){const [l5,l50,l95]=ebPar(T,g);const z=invZ(p);const s=z<0?(l50-l5)/Z95:(l95-l50)/Z95;return Math.exp(l50+z*s);}
+const psvMedian=g=>Math.exp(2.31+0.046*g);
+const inR=(g,lo,hi)=>g>=lo&&g<hi;
+const HI=z=>z>Z95+1e-9,LO=z=>z<-Z95-1e-9; // on the 5th/95th line counts as within range
+
+function dopplerRows(g,d,uaRef){
+  const rows=[],fl={};const add=(key,label,value,z,p,note,cen)=>rows.push({key,label,value,z,p,note:note||"",cen});
+  if(d.ua_pi){for(const [k,r] of Object.entries(UA_REFS)){
+      if(inR(g,r.min,r.max)){const z=r.z(g,d.ua_pi),p=100*cdf(z);if(k===uaRef)fl.ua_high=HI(z);
+        add("ua_"+k,"UA PI · "+r.short+(k===uaRef?" (used)":""),d.ua_pi,z,p,HI(z)?">95th":"",[5,50,95].map(q=>r.cen(g,q)));}
+      else add("ua_"+k,"UA PI · "+r.short,d.ua_pi,null,null,`outside ${r.min}–${r.max-1} wk`);}}
+  if(d.mca_pi){if(inR(g,EB_MIN,EB_MAX)){const z=ebZ(EB_MCA,g,d.mca_pi),p=100*cdf(z);fl.mca_low=LO(z);
+      add("mca","MCA PI · Ebbing 2007",d.mca_pi,z,p,LO(z)?"<5th":"",[5,50,95].map(q=>ebCen(EB_MCA,g,q)));}
+    else add("mca","MCA PI · Ebbing 2007",d.mca_pi,null,null,"outside 21–39 wk");}
+  let cpr=d.cpr;if(!cpr&&d.ua_pi&&d.mca_pi)cpr=d.mca_pi/d.ua_pi;
+  if(cpr){const lab="CPR"+(d.cpr?"":" = MCA/UA")+" · Ebbing 2007";
+    if(inR(g,EB_MIN,EB_MAX)){const z=ebZ(EB_CPR,g,cpr),p=100*cdf(z);fl.cpr_low=LO(z);add("cpr",lab,cpr,z,p,LO(z)?"<5th":"",[5,50,95].map(q=>ebCen(EB_CPR,g,q)));}
+    else add("cpr",lab,cpr,null,null,"outside 21–39 wk");}
+  const lc=v=>v===true?">95th (local chart)":v===false?"≤95th (local chart)":"centile: use local chart";
+  fl.uta_high=d.uta_abn??null;
+  if(d.uta_pi){if(inR(g,GZ_MIN,GZ_MAX)){const z=ebZ(GZ_UTA,g,d.uta_pi),p=100*cdf(z);fl.uta_high=HI(z);
+      add("uta","Uterine artery mean PI · Gómez 2008",d.uta_pi,z,p,HI(z)?">95th":"",[5,50,95].map(q=>ebCen(GZ_UTA,g,q)));}
+    else add("uta","Uterine artery mean PI · Gómez 2008",d.uta_pi,null,null,d.uta_abn==null?"outside 11–41 wk":lc(d.uta_abn));}
+  fl.dv_high=d.dv_abn??null;
+  if(d.dv_piv){if(inR(g,EB_MIN,EB_MAX)){const z=lnZ(KS_DV,g,d.dv_piv),p=100*cdf(z);fl.dv_high=HI(z);
+      add("dv","Ductus venosus PIV · Kessler 2006",d.dv_piv,z,p,HI(z)?">95th":"",[5,50,95].map(q=>lnCen(KS_DV,g,q)));}
+    else add("dv","Ductus venosus PIV · Kessler 2006",d.dv_piv,null,null,d.dv_abn==null?"outside 21–39 wk":lc(d.dv_abn));}
+  if(d.mca_psv){const mom=d.mca_psv/psvMedian(g);fl.psv_mom=mom;
+    add("psv","MCA PSV (cm/s) · Mari 2000",d.mca_psv,null,null,mom.toFixed(2)+" MoM"+(mom>=1.5?"; moderate/severe anaemia range (≥1.5 MoM)":mom>=1.29?"; mild anaemia range":""),[NaN,psvMedian(g),1.5*psvMedian(g)]);}
+  fl.ua_edf=d.ua_edf||null;fl.dv_a=d.dv_a||null;
+  if(fl.ua_high===undefined)fl.ua_high=null;if(fl.cpr_low===undefined)fl.cpr_low=null;if(fl.mca_low===undefined)fl.mca_low=null;
+  return {rows,fl};
+}
+const drop=(prior,cur)=>{prior=prior.filter(x=>x!=null);return cur==null||!prior.length?null:Math.max(...prior)-cur;};
+function classifyFGR(g,acP,efwP,efwBand10,fl,priorAC,priorEFW,onset){
+  const out={criteria:[],findings:[],missing:[],drop:null};
+  const sizes=[acP,efwP].filter(x=>x!=null);
+  if(!sizes.length&&!efwBand10){out.category="insufficient";out.text="Needs AC or EFW centile";return out;}
+  const minS=sizes.length?Math.min(...sizes):null;
+  const below3=minS!=null&&minS<3, below10=(minS!=null&&minS<10)||!!efwBand10;
+  const ds=[drop(priorAC,acP),drop(priorEFW,efwP)].filter(x=>x!=null);const dr=ds.length?Math.max(...ds):null;out.drop=dr;
+  const crossing=dr!=null&&dr>=50, aredf=fl.ua_edf==="absent"||fl.ua_edf==="reversed";
+  const early=onset?onset==="early":g<32;out.onset=early?"early":"late";
+  const which=acP!=null&&acP===minS?"AC":"EFW";const c=out.criteria;let fgr=false;
+  if(early){
+    if(below3){c.push(which+" <3rd centile");fgr=true;}
+    if(aredf){c.push("UA end-diastolic flow "+fl.ua_edf);fgr=true;}
+    if(below10&&(fl.uta_high||fl.ua_high)){c.push(which+" <10th centile with "+[["UtA PI >95th","uta_high"],["UA PI >95th","ua_high"]].filter(x=>fl[x[1]]).map(x=>x[0]).join(" and "));fgr=true;}
+    if(below10&&!fgr){if(fl.ua_high==null)out.missing.push("UA PI");if(fl.uta_high==null)out.missing.push("uterine artery PI");}
+  }else{
+    if(below3)c.push(which+" <3rd centile");
+    const n2=[];if(below10)n2.push(which+" <10th centile");if(crossing)n2.push(`centile fall of ${dr.toFixed(0)} (>2 quartiles)`);
+    if(fl.cpr_low||fl.ua_high)n2.push([["CPR <5th","cpr_low"],["UA PI >95th","ua_high"]].filter(x=>fl[x[1]]).map(x=>x[0]).join(" or "));
+    fgr=below3||n2.length>=2;
+    if(n2.length>=2)c.push("2 or more of: "+n2.join("; "));
+    else if(!below3){out.findings=n2;if(below10&&!fgr){if(fl.cpr_low==null&&fl.ua_high==null)out.missing.push("UA PI / CPR");if(dr==null)out.missing.push("an earlier scan (centile crossing)");}}
+  }
+  if(fgr){out.category=out.onset+"_fgr";out.text=(early?"Early":"Late")+" FGR (Delphi consensus)";}
+  else if(below10){out.category="sga";out.text="SGA – Delphi FGR criteria not met";}
+  else{out.category="normal";out.text="Not SGA/FGR (AC and EFW ≥ 10th centile)";}
+  return out;
+}
+function managementISUOG(g,cls,fl,cl){
+  const dl=[],plan=[],cat=cls.category,edf=fl.ua_edf,dvBad=fl.dv_a==="absent"||fl.dv_a==="reversed",stv=cl.stv,bpp=cl.bpp;
+  const steroids=()=>{if(g<34)plan.push("Corticosteroids if delivery is planned before 34+0 weeks (RCOG: up to 35+6).");
+    if(g<32)plan.push("Magnesium sulphate for neuroprotection per local/national protocol (commonly <32 weeks).");};
+  if(cl.maternal)dl.push("maternal indication or obstetric emergency (any gestation)");
+  if(cat==="early_fgr"){
+    if(g>=26){if(cl.decels)dl.push("spontaneous repeated persistent unprovoked decelerations");if(bpp!=null&&bpp<=4)dl.push(`biophysical profile ${bpp}/10 (≤4)`);}
+    if(g>=26&&g<32){const lim=g<29?2.6:3.0;if(dvBad)dl.push(`DV a-wave at or below baseline (${fl.dv_a}) at 26+0–31+6 wk`);if(stv!=null&&stv<lim)dl.push(`cCTG STV ${stv.toFixed(1)} ms < ${lim} ms`);}
+    if(g>=32&&dvBad)dl.push(`DV a-wave ${fl.dv_a} (more advanced than the UA criteria that already apply from 32 wk)`);
+    if(edf==="reversed"){if(g>=32)dl.push("UA reversed end-diastolic flow (deliver from 32+0 wk)");else if(g>=30)dl.push("UA reversed end-diastolic flow (delivery permitted after 30+0 wk; recommended by 32+0)");}
+    if(edf==="absent"){if(g>=34)dl.push("UA absent end-diastolic flow (deliver from 34+0 wk)");else if(g>=32)dl.push("UA absent end-diastolic flow (delivery permitted after 32+0 wk; recommended by 34+0)");}
+    if(stv!=null&&g>=32){const lim=g<34?3.5:4.5;if(stv<lim)dl.push(`cCTG STV ${stv.toFixed(1)} ms < ${lim} ms`);}
+    if(g<24)plan.push("Below 24+0 weeks: ISUOG gives no delivery criteria; counsel with neonatology (periviability).");
+    else if(g<26)plan.push("24+0–25+6 weeks: personalised management (consensus-based).");
+    plan.push("Manage in a tertiary fetal medicine / neonatal unit with joint MFM–neonatology counselling.",
+      "Monitor with UA, MCA and DV Doppler plus cCTG (STV) where available, otherwise CTG ± biophysical profile.",
+      edf==="absent"||edf==="reversed"?"UA absent/reversed EDF: monitor every 2–3 days; daily during steroid administration.":"Monitoring interval according to severity and UA Doppler.");
+    if(!dl.length){if(g<30&&edf==="reversed")plan.push("Plan: UA REDF – delivery permitted from 30+0 wk, recommended by 32+0.");
+      if(g<32&&edf==="absent")plan.push("Plan: UA AEDF – delivery permitted from 32+0 wk, recommended by 34+0.");}
+    steroids();
+    plan.push("Caesarean section if STV abnormal, DV abnormal, UA absent/reversed EDF, BPP altered or maternal indication.");
+  }else if(cat==="late_fgr"){
+    if(cl.decels)dl.push("spontaneous repeated persistent unprovoked decelerations");
+    if(bpp!=null&&bpp<=4)dl.push(`biophysical profile ${bpp}/10 (≤4)`);
+    if(stv!=null&&g>=32){const lim=g<34?3.5:4.5;if(stv<lim)dl.push(`cCTG STV ${stv.toFixed(1)} ms < ${lim} ms`);}
+    if(edf==="absent"||edf==="reversed")dl.push(`UA ${edf} end-diastolic flow`);
+    if(dvBad)dl.push(`DV a-wave ${fl.dv_a}`);
+    const redis=fl.cpr_low||fl.mca_low;
+    if(fl.ua_high){plan.push("UA PI >95th: deliver at 36+0 to 37+0 weeks; monitor at least once–twice weekly.");if(g>=37)dl.push("UA PI >95th at ≥37+0 wk (planned delivery 36+0–37+0 wk)");}
+    if(redis){plan.push("Cerebral redistribution (CPR or MCA PI <5th): deliver at 38+0 weeks; surveillance twice weekly; confirm abnormal MCA/CPR within 24 h before acting on it.");if(g>=38&&!fl.ua_high)dl.push("cerebral redistribution at ≥38+0 wk");}
+    if(!fl.ua_high&&!redis)plan.push("No Doppler-based delivery threshold in ISUOG 2020 for this profile: weekly UA/MCA/CPR Doppler and growth; timing by local protocol.");
+    steroids();
+    plan.push("Induction of labour is reasonable unless contraindicated (not with UA absent/reversed EDF); continuous FHR monitoring in labour.");
+  }else if(cat==="sga"){
+    plan.push("Doppler at diagnosis and at follow-up: UA, MCA, CPR; uterine artery at diagnosis.",
+      g>=32?"Fortnightly growth scans and weekly UA/MCA/CPR Doppler.":"Repeat growth and Doppler; watch for progression to FGR.",
+      "Induction of labour from 38+0 weeks, not beyond 39+6 weeks; continuous FHR monitoring in labour.");
+    if(g>=39+6/7)dl.push("SGA at ≥39+6 wk");
+    if(edf==="absent"||edf==="reversed"||dvBad)plan.push("Abnormal UA/DV waveform with SGA: re-check biometry and re-classify (FGR criteria).");
+  }else if(cat==="normal"){
+    plan.push(fl.ua_high||fl.cpr_low||fl.mca_low||edf==="absent"||edf==="reversed"||dvBad?"Doppler abnormality without SGA/FGR by Delphi criteria: repeat assessment; clinical judgement.":"No SGA/FGR criteria met.");
+  }
+  if(fl.psv_mom&&fl.psv_mom>=1.5)plan.push("MCA PSV ≥1.5 MoM: suspect moderate/severe fetal anaemia – refer to fetal medicine (separate from FGR pathway)."+(g>35?" Note: more false positives after 35 weeks.":""));
+  return {urgent:dl.length>0,deliver:dl,plan};
+}
+function needInputs(cls,fl,cl){const n=[],cat=cls.category;
+  if(["early_fgr","late_fgr","sga"].includes(cat)&&!fl.ua_edf)n.push("UA end-diastolic flow");
+  if(cat==="early_fgr"){if(!fl.dv_a)n.push("DV a-wave");if(cl.stv==null)n.push("cCTG STV");}
+  if(cat==="late_fgr"&&fl.cpr_low==null)n.push("MCA PI (for CPR)");return n;}
+
+/* ---------- UI glue ---------- */
+const DOP_IDS=["uaPI","mcaPI","cprIn","utaPI","dvPIV","mcaPSV","uaEDF","dvA","utaAbn","dvAbn"];
+const yn=v=>v==="yes"?true:v==="no"?false:null;
+function currentDoppler(){return {ua_pi:num("uaPI"),mca_pi:num("mcaPI"),cpr:num("cprIn"),uta_pi:num("utaPI"),dv_piv:num("dvPIV"),mca_psv:num("mcaPSV"),
+  ua_edf:$("uaEDF").value||null,dv_a:$("dvA").value||null,uta_abn:yn($("utaAbn").value),dv_abn:yn($("dvAbn").value)};}
+const hasDop=d=>d&&(d.ua_pi||d.mca_pi||d.cpr||d.uta_pi||d.dv_piv||d.mca_psv||d.ua_edf||d.dv_a||d.uta_abn!=null||d.dv_abn!=null);
+const sizeP=(a,k)=>a[k]&&!a[k].oor&&a[k].p!=null?a[k].p:null;
+function renderFGR(v,a){
+  const tb=$("dop").querySelector("tbody");tb.innerHTML="";const box=$("fgrOut");
+  if(!(v&&v.ga>0)){box.innerHTML="";$("dopWrap").style.display="none";return;}
+  const d=currentDoppler(),uaRef=$("uaRef").value,g=v.ga;
+  const {rows,fl}=dopplerRows(g,d,uaRef);
+  $("dopWrap").style.display=rows.length?"":"none";
+  const f2=x=>x==null||isNaN(x)?"–":x.toFixed(2);
+  rows.forEach(r=>{const pt=r.p==null?"–":r.p<0.1?"<0.1":r.p>99.9?">99.9":r.p.toFixed(1);
+    tb.insertAdjacentHTML("beforeend",`<tr><td>${esc(r.label)}</td><td>${r.key==="psv"?r.value.toFixed(1):f2(r.value)}</td><td>${r.z==null?"–":(r.z>=0?"+":"")+r.z.toFixed(2)}</td><td>${pt}</td><td>${r.note?`<span class="tag${/^[<>]|anaemia/.test(r.note)?" flag":""}">${esc(r.note)}</span>`:""}</td>${(r.cen||[NaN,NaN,NaN]).map(x=>`<td>${r.key==="psv"?(isNaN(x)?"–":x.toFixed(1)):f2(x)}</td>`).join("")}</tr>`);});
+  // growth inputs: current scan + earlier saved scans (same EFW reference)
+  const efwBand=a.efw&&a.efw.band;const efwBand10=efwBand?efwBand.cat==="< 5th"||efwBand.cat==="< 10th":false;
+  const prior=scans.filter(s=>s.ga<g-1e-6).map(s=>assess(s));
+  const cls=classifyFGR(g,sizeP(a,"ac"),sizeP(a,"efw"),efwBand10,fl,prior.map(x=>sizeP(x,"ac")),prior.map(x=>sizeP(x,"efw")),$("onset").value||null);
+  if(cls.category==="insufficient"){box.innerHTML=`<div class="note" style="margin-top:8px">Enter AC or EFW to classify SGA/FGR.</div>`;return;}
+  const cl={stv:num("stv"),bpp:(()=>{const x=parseInt($("bpp").value,10);return isFinite(x)?x:null;})(),decels:$("decels").checked,maternal:$("maternal").checked};
+  const m=managementISUOG(g,cls,fl,cl),need=needInputs(cls,fl,cl);
+  const kind=cls.category.endsWith("fgr")?"fgr":cls.category==="sga"?"sga":"";
+  let h=`<div class="fgrbox ${kind}"><b>${esc(cls.text)}</b> <span class="note">GA ${fmtGA(g)} wk</span>`;
+  if(cls.criteria.length)h+=`<div>Criteria met: ${cls.criteria.map(esc).join("; ")}</div>`;
+  if(cls.findings.length)h+=`<div>Finding (1 of the 2 needed for late FGR): ${cls.findings.map(esc).join("; ")}</div>`;
+  if(cls.drop!=null)h+=`<div class="note">Largest centile fall since an earlier saved scan: ${cls.drop.toFixed(0)}</div>`;
+  if(efwBand)h+=`<div class="note">EFW chart gives bands only; &lt;3rd centile is judged from AC.</div>`;
+  if(cls.missing.length)h+=`<div class="note">Not assessable without: ${cls.missing.map(esc).join(", ")}</div>`;
+  if(need.length)h+=`<div class="note">Management also needs: ${need.map(esc).join(", ")}</div>`;
+  h+=`</div><div style="margin-top:8px"><strong>Management – ISUOG Practice Guidelines 2020</strong><ul class="plan">`;
+  m.deliver.forEach(x=>h+=`<li class="dl">DELIVER (after steroids if &lt;34 wk, unless urgent): ${esc(x)}</li>`);
+  m.plan.forEach(x=>h+=`<li>${esc(x)}</li>`);
+  h+=`</ul><p class="note">Delphi criteria apply to fetuses without congenital anomalies. Early FGR = diagnosed &lt;32+0 wk. Cerebral redistribution = CPR or MCA PI &lt;5th centile. Decision-support aid only.</p></div>`;
+  box.innerHTML=h;
+}
+
+/* ---------------- charts (SVG) ---------------- */
+const STY={3:["--p3","5 4",1.3],5:["--p5","7 3 2 3",1.2],10:["--p10","2 3",1.7],50:["--p50","",2.6],90:["--p10","2 3",1.7],95:["--p5","7 3 2 3",1.2],97:["--p3","5 4",1.3]};
+function niceStep(range){const raw=range/6,mag=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/mag;return (n<1.5?1:n<3?2:n<7?5:10)*mag;}
+function chartSVG(key,cur){
+  const r=ref(key),W=480,H=320,L=48,R=26,T=12,B=36,pw=W-L-R,ph=H-T-B;
+  const x0=r.min,x1=r.max+1,ymax=Math.max(...PCTS.map(p=>centile(r,r.max,p)).filter(v=>!isNaN(v)))*1.05;
+  const X=g=>L+(g-x0)/(x1-x0)*pw,Y=v=>T+ph-(v/ymax)*ph;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${r.label} percentile chart">`;
+  const ys=niceStep(ymax);
+  for(let v=0;v<=ymax;v+=ys)s+=`<line class="gr" x1="${L}" x2="${L+pw}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  for(let g=Math.ceil(x0/2)*2;g<=x1;g+=2)s+=`<line class="gr" x1="${X(g)}" x2="${X(g)}" y1="${T}" y2="${T+ph}"/><text x="${X(g)}" y="${T+ph+15}" text-anchor="middle">${g}</text>`;
+  s+=`<line class="ax" x1="${L}" x2="${L+pw}" y1="${T+ph}" y2="${T+ph}"/><line class="ax" x1="${L}" x2="${L}" y1="${T}" y2="${T+ph}"/>`;
+  s+=`<text x="${L+pw/2}" y="${H-3}" text-anchor="middle">Gestational age (weeks)</text><text transform="translate(12 ${T+ph/2}) rotate(-90)" text-anchor="middle">${r.short} (${r.unit})</text>`;
+  const gs=[];for(let g=r.min;g<=r.max+1e-9;g+=0.25)gs.push(g);
+  const path=p=>gs.map((g,i)=>(i?"L":"M")+X(g).toFixed(1)+","+Y(centile(r,g,p)).toFixed(1)).join("");
+  s+=`<path class="band" d="${path(90)}${gs.slice().reverse().map(g=>"L"+X(g).toFixed(1)+","+Y(centile(r,g,10)).toFixed(1)).join("")}Z"/>`;
+  for(const p of PCTS){if(isNaN(centile(r,r.max,p)))continue;const [c,da,w]=STY[p];s+=`<path d="${path(p)}" fill="none" style="stroke:var(${c})" stroke-width="${w}" ${da?`stroke-dasharray="${da}"`:""}/>`;
+    s+=`<text x="${X(r.max)+3}" y="${Y(centile(r,r.max,p))+3}" style="fill:var(${c});font-size:9px">${p}</text>`;}
+  const fk=$("formula").value,val=v=>key==="efw"?efwOf(v,fk):v[key];
+  const pts=scans.filter(v=>val(v)&&v.ga>=r.min&&v.ga<=r.max).sort((a,b)=>a.ga-b.ga).map(v=>[X(v.ga),Y(val(v))]);
+  if(pts.length>1)s+=`<path class="series" d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}"/>`;
+  pts.forEach(p=>s+=`<circle class="pt" cx="${p[0]}" cy="${p[1]}" r="4.5"/>`);
+  if(cur&&cur.ga>=r.min&&cur.ga<=r.max&&val(cur))s+=`<circle class="pt cur" cx="${X(cur.ga)}" cy="${Y(val(cur))}" r="6"/>`;
+  return s+"</svg>";
+}
+function drawCharts(cur){
+  const fk=$("formula").value;
+  $("charts").innerHTML=KEYS.map(k=>`<div class="card chart"><h3>${ref(k).label}${k==="efw"?` · ${fLabel(fk,cur)} on ${ref(k).name}`:` · ${ref(k).name}`}</h3>${chartSVG(k,cur)}<div class="note">${ref(k).src}</div></div>`).join("")+dopCharts(cur);
+}
+const cprOf=v=>v&&(v.cpr||(v.ua_pi&&v.mca_pi?v.mca_pi/v.ua_pi:null));
+function dopChartSVG(title,unit,lo,hi,cen,val,cur){
+  const W=480,H=300,L=48,R=26,T=12,B=36,pw=W-L-R,ph=H-T-B;const gs=[];for(let g=lo;g<hi-0.01;g+=0.25)gs.push(g);
+  const ymax=Math.max(...gs.map(g=>cen(g,95)))*1.08,ymin=Math.min(...gs.map(g=>cen(g,5)))*0.85;
+  const X=g=>L+(g-lo)/(hi-lo)*pw,Y=v=>T+ph-((v-ymin)/(ymax-ymin))*ph;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title} centile chart">`;const ys=niceStep(ymax-ymin);
+  for(let v=Math.ceil(ymin/ys)*ys;v<=ymax;v+=ys)s+=`<line class="gr" x1="${L}" x2="${L+pw}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${+v.toFixed(2)}</text>`;
+  for(let g=Math.ceil(lo/2)*2;g<=hi;g+=2)s+=`<line class="gr" x1="${X(g)}" x2="${X(g)}" y1="${T}" y2="${T+ph}"/><text x="${X(g)}" y="${T+ph+15}" text-anchor="middle">${g}</text>`;
+  s+=`<line class="ax" x1="${L}" x2="${L+pw}" y1="${T+ph}" y2="${T+ph}"/><line class="ax" x1="${L}" x2="${L}" y1="${T}" y2="${T+ph}"/><text x="${L+pw/2}" y="${H-3}" text-anchor="middle">Gestational age (weeks)</text><text transform="translate(12 ${T+ph/2}) rotate(-90)" text-anchor="middle">${unit}</text>`;
+  const path=p=>gs.map((g,i)=>(i?"L":"M")+X(g).toFixed(1)+","+Y(cen(g,p)).toFixed(1)).join("");
+  s+=`<path class="band" d="${path(95)}${gs.slice().reverse().map(g=>"L"+X(g).toFixed(1)+","+Y(cen(g,5)).toFixed(1)).join("")}Z"/>`;
+  for(const p of [5,50,95]){const [c,da,w]=STY[p];s+=`<path d="${path(p)}" fill="none" style="stroke:var(${c})" stroke-width="${w}" ${da?`stroke-dasharray="${da}"`:""}/>`;}
+  const pts=scans.filter(v=>val(v)&&v.ga>=lo&&v.ga<hi).sort((a,b)=>a.ga-b.ga).map(v=>[X(v.ga),Y(val(v))]);
+  if(pts.length>1)s+=`<path class="series" d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}"/>`;
+  pts.forEach(p=>s+=`<circle class="pt" cx="${p[0]}" cy="${p[1]}" r="4.5"/>`);
+  if(cur&&val(cur)&&cur.ga>=lo&&cur.ga<hi)s+=`<circle class="pt cur" cx="${X(cur.ga)}" cy="${Y(val(cur))}" r="6"/>`;
+  return s+"</svg>";
+}
+function dopCharts(cur){
+  const any=k=>scans.concat(cur?[cur]:[]).some(v=>k(v));if(!any(v=>v.ua_pi||v.mca_pi||cprOf(v)||v.uta_pi||v.dv_piv))return "";
+  const r=UA_REFS[$("uaRef").value];
+  const C=(t,src,svg)=>`<div class="card chart"><h3>${t}</h3>${svg}<div class="note">${src} · lines P5 / P50 / P95</div></div>`;
+  return C("Umbilical artery PI · "+r.short,r.label,dopChartSVG("UA PI","UA PI",Math.max(r.min,20),r.max,(g,p)=>r.cen(g,p),v=>v.ua_pi,cur))+
+    C("Middle cerebral artery PI · Ebbing 2007","Ebbing et al. Ultrasound Obstet Gynecol 2007;30:287–96",dopChartSVG("MCA PI","MCA PI",EB_MIN,EB_MAX,(g,p)=>ebCen(EB_MCA,g,p),v=>v.mca_pi,cur))+
+    C("Cerebroplacental ratio · Ebbing 2007","Ebbing et al. 2007 (no Thai CPR reference published)",dopChartSVG("CPR","CPR",EB_MIN,EB_MAX,(g,p)=>ebCen(EB_CPR,g,p),cprOf,cur))+
+    (any(v=>v.uta_pi)?C("Uterine artery mean PI · Gómez 2008","Gómez et al. Ultrasound Obstet Gynecol 2008;32:128–32",dopChartSVG("UtA PI","UtA mean PI",GZ_MIN,GZ_MAX,(g,p)=>ebCen(GZ_UTA,g,p),v=>v.uta_pi,cur)):"")+
+    (any(v=>v.dv_piv)?C("Ductus venosus PIV · Kessler 2006","Kessler et al. Ultrasound Obstet Gynecol 2006;28:890–8",dopChartSVG("DV PIV","DV PIV",EB_MIN,EB_MAX,(g,p)=>lnCen(KS_DV,g,p),v=>v.dv_piv,cur)):"");
+}
+$("legend").innerHTML=[3,5,10,50].map(p=>{const [c,da]=STY[p];return `<span><i style="border-top-color:var(${c});border-top-style:${da?"dashed":"solid"}"></i>P${p}${p<50?"/P"+(100-p):""}</span>`;}).join("")+
+  `<span><svg width="14" height="14" style="display:inline;vertical-align:middle"><circle class="pt" cx="7" cy="7" r="5"/></svg> this fetus (larger = current entry)</span><span><i style="border-top:10px solid var(--band);height:10px"></i>P10–P90 band</span>`;
+
+/* ---------------- reference tables tab ---------------- */
+function tableRows(k){const r=getRef(k),rows=[];for(let g=r.min;g<=r.max;g++)rows.push([g,...PCTS.map(p=>{const c=centile(r,g,p);return isNaN(c)?"–":c.toFixed(r.dec);})]);return rows;}
+function renderTable(){const k=$("tblSel").value,r=getRef(k);$("tblSrc").textContent=`${r.label} (${r.unit}), from ${r.src}`;
+  $("tbl").innerHTML=`<thead><tr><th>GA (wk)</th>${PCTS.map(p=>`<th>P${p}</th>`).join("")}</tr></thead><tbody>${tableRows(k).map(row=>`<tr>${row.map((c,i)=>`<td${i===4?' style="font-weight:600"':""}>${c}</td>`).join("")}</tr>`).join("")}</tbody>`;}
+$("tblSel").innerHTML=["bpd","hc","ac","fl"].map(k=>`<option value="pooled:${k}">${BIO_SETS.pooled[k].label} – Pooled Thai</option>`).join("")+
+  ["bpd","hc","ac","fl"].map(k=>`<option value="single:${k}">${REFS[k].label} – ${REFS[k].name}</option>`).join("")+
+  Object.entries(EFW_REFS).map(([k,r])=>`<option value="efw:${k}">EFW – ${r.name}</option>`).join("");
+$("tblSel").onchange=renderTable;
+$("tblCsv").onclick=()=>{const k=$("tblSel").value;download(`thai_${k.replace(":","_")}_centiles.csv`,["GA_weeks,"+PCTS.map(p=>"P"+p).join(",")].concat(tableRows(k).map(r=>r.join(","))).join("\n"));};
+
+/* ---------------- tabs, theme, wiring ---------------- */
+document.querySelectorAll(".tabs button[data-tab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button[data-tab]").forEach(x=>x.classList.toggle("on",x===b));
+  ["calc","tables","about"].forEach(t=>$("tab-"+t).classList.toggle("hidden",t!==b.dataset.tab));});
+$("themeBtn").onclick=()=>{const d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;d.dataset.theme=dark?"light":"dark";};
+["gaw","gad","bpd","hc","ac","fl","efwIn","formula","bioref","efwref","pid","pname","sdate",...DOP_IDS,"stv","bpp","onset","uaRef","decels","maternal"].forEach(id=>$(id).addEventListener("input",render));
+$("edd").addEventListener("input",()=>{eddToGA();render();});
+$("sdate").value=new Date().toISOString().slice(0,10);
+load();renderTable();render();
+</script>
+
+<script>
+/* Offline support: cache the app the first time it is opened over HTTPS. */
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js").then(function () {
+    var n = document.getElementById("offlineNote");
+    if (n) n.textContent = "Works offline once opened. Install: Safari \u2192 Share \u2192 Add to Home Screen.";
+  }).catch(function () {});
+}
+</script>
+</body>
+</html>
